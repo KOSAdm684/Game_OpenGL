@@ -2,6 +2,7 @@
 #include <iostream>
 #include "Shader/Shader.h"
 #include <GLFW/glfw3.h>
+#include "Tank/Tank.h"
 
 int main()
 {
@@ -11,12 +12,12 @@ int main()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_ANY_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    int width = 1024;
-    int height = 768;
+    int width = 1024; // [-512; 512]
+    int height = 768; // [-384; 384]
     const float *proj = new float[2]{ (float)2/width, (float)2/height };
-    bool *states = new bool[4] { 0, 0, 0, 0 };
-    const float acceleration = 0.05f;
-    float *speeds = new float[4] { 1.0f, 1.0f, 1.0f, 1.0f };
+    bool *states = new bool[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
+    const float acceleration = 0.1f;
+    float *speeds = new float[8] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
     // Create a GLFWwindow
     GLFWwindow *window = glfwCreateWindow(width, height, "title", nullptr, nullptr);
     if (!window) {
@@ -35,10 +36,19 @@ int main()
     Shader *shdr = new Shader("Shaders/tr.vert", "Shaders/tr.frag");
 
     GLfloat vertices[] = {
-        -50.0f, -30.0f, 0.0f, 0.0f, 0.0f,
-        -30.0f, 0.0f, 0.0f, 0.0f, 0.0f,
-        -10.0f, -30.0f, 0.0f, 0.0f, 0.0f
+        -0.5f, -0.5f,
+        -0.5f, 0.5f,
+        0.5f, -0.5f,
+
+        0.5f, -0.5f,
+        0.5f, 0.5f,
+        -0.5f, 0.5f
     };
+
+    GLuint uProj = glGetUniformLocation(shdr->Program, "u_projection");
+    GLuint uColor = glGetUniformLocation(shdr->Program, "u_color");
+    GLuint uSize = glGetUniformLocation(shdr->Program, "u_size");
+    GLuint uPosition = glGetUniformLocation(shdr->Program, "u_position");
 
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -48,13 +58,15 @@ int main()
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
     glEnableVertexAttribArray(0);
 
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
-    glEnableVertexAttribArray(1);
-
     glBindVertexArray(0);
+
+    Tank **tanks = new Tank*[2];
+    tanks[0] = new Tank(-256, 0, 100, new float[3]{ 0.8f, 0.0f, 0.0f });
+    tanks[1] = new Tank(256, 0, 100, new float[3] { 0.0f, 0.8f, 0.0f });
+
 
     while (!glfwWindowShouldClose(window))
     {   
@@ -63,62 +75,109 @@ int main()
         states[1] = glfwGetKey(window, GLFW_KEY_D);
         states[2] = glfwGetKey(window, GLFW_KEY_W);
         states[3] = glfwGetKey(window, GLFW_KEY_S);
+        states[4] = glfwGetKey(window, GLFW_KEY_LEFT);
+        states[5] = glfwGetKey(window, GLFW_KEY_RIGHT);
+        states[6] = glfwGetKey(window, GLFW_KEY_UP);
+        states[7] = glfwGetKey(window, GLFW_KEY_DOWN);
+        
+        if (states[0] && !states[1])
+        {
+            tanks[0]->speedX -= acceleration;            
+        }
 
-        if (states[0])
+        if (!states[0] && states[1])
         {
-            vertices[0] -= speeds[0];
-            vertices[5] -= speeds[0];
-            vertices[10] -= speeds[0];
-            speeds[0] += acceleration;
+            tanks[0]->speedX += acceleration;
         }
-        else
+        
+        if (states[0] && states[1])
         {
-            speeds[0] = 1.0f;
+            tanks[0]->speedX = 0;
         }
-        if (states[1])
+
+        if (!states[0] && !states[1])
         {
-            vertices[0] += speeds[1];
-            vertices[5] += speeds[1];
-            vertices[10] += speeds[1];
-            speeds[1] += acceleration;
+            tanks[0]->speedX = 0;
         }
-        else
+
+        if (states[2] && !states[3])
         {
-            speeds[1] = 1.0f;
+            tanks[0]->speedY += acceleration;
         }
-        if (states[2])
+
+        if (!states[2] && states[3])
         {
-            vertices[1] += speeds[2];
-            vertices[6] += speeds[2];
-            vertices[11] += speeds[2];
-            speeds[2] += acceleration;
+            tanks[0]->speedY -= acceleration;
         }
-        else
+
+        if (states[2] && states[3])
         {
-            speeds[2] = 1.0f;
+            tanks[0]->speedY = 0;
         }
-        if (states[3])
+
+        if (!states[2] && !states[3])
         {
-            vertices[1] -= speeds[3];
-            vertices[6] -= speeds[3];
-            vertices[11] -= speeds[3];
-            speeds[3] += acceleration;
+            tanks[0]->speedY = 0;
         }
-        else
+
+        // second tank
+        if (states[4] && !states[5])
         {
-            speeds[3] = 1.0f;
+            tanks[1]->speedX -= acceleration;            
         }
+
+        if (!states[4] && states[5])
+        {
+            tanks[1]->speedX += acceleration;
+        }
+        
+        if (states[4] && states[5])
+        {
+            tanks[1]->speedX = 0;
+        }
+
+        if (!states[4] && !states[5])
+        {
+            tanks[1]->speedX = 0;
+        }
+
+        if (states[6] && !states[7])
+        {
+            tanks[1]->speedY += acceleration;
+        }
+
+        if (!states[6] && states[7])
+        {
+            tanks[1]->speedY -= acceleration;
+        }
+
+        if (states[6] && states[7])
+        {
+            tanks[1]->speedY = 0;
+        }
+
+        if (!states[6] && !states[7])
+        {
+            tanks[1]->speedY = 0;
+        }
+
+        tanks[0]->Move();
+        tanks[1]->Move();
 
         glClearColor(1, 1, 1, 0);
         glClear(GL_COLOR_BUFFER_BIT);
 
         shdr->Use();
-        GLuint u_proj = glGetUniformLocation(shdr->Program, "u_projection");
-        glUniform2fv(u_proj, 1, proj);
-        glBindVertexArray(VAO);
-        glBindBuffer(GL_ARRAY_BUFFER, VBO);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glUniform2fv(uProj, 1, proj);
+
+        for (int i = 0; i < 2; i++)
+        {
+            glUniform3fv(uColor, 1, tanks[i]->color);
+            glUniform2f(uPosition, tanks[i]->x, tanks[i]->y);
+            glUniform1f(uSize, tanks[i]->size);
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 6);
+        }
         glBindVertexArray(0);
 
         glfwSwapBuffers(window);
