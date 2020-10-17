@@ -10,4 +10,4 @@ debug/Shader.o: Shader/Shader.cpp
 debug/Tank.o: Tank/Tank.cpp
 	$(CXX) $(CXXFLAGS) -c Tank/Tank.cpp -o debug/Tank.o
 clean: 
-	rm -f main debug/Shader.o debug/main.o
+	rm -f main debug/Tank.o debug/Shader.o debug/main.o

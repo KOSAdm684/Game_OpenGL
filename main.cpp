@@ -3,6 +3,7 @@
 #include "Shader/Shader.h"
 #include <GLFW/glfw3.h>
 #include "Tank/Tank.h"
+#include <math.h>
 
 int main()
 {
@@ -17,7 +18,6 @@ int main()
     const float *proj = new float[2]{ (float)2/width, (float)2/height };
     bool *states = new bool[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
     const float acceleration = 0.1f;
-    float *speeds = new float[8] { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f };
     // Create a GLFWwindow
     GLFWwindow *window = glfwCreateWindow(width, height, "title", nullptr, nullptr);
     if (!window) {
@@ -49,6 +49,7 @@ int main()
     GLuint uColor = glGetUniformLocation(shdr->Program, "u_color");
     GLuint uSize = glGetUniformLocation(shdr->Program, "u_size");
     GLuint uPosition = glGetUniformLocation(shdr->Program, "u_position");
+    GLuint uAngle = glGetUniformLocation(shdr->Program, "u_angle");
 
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -64,8 +65,8 @@ int main()
     glBindVertexArray(0);
 
     Tank **tanks = new Tank*[2];
-    tanks[0] = new Tank(-256, 0, 100, new float[3]{ 0.8f, 0.0f, 0.0f });
-    tanks[1] = new Tank(256, 0, 100, new float[3] { 0.0f, 0.8f, 0.0f });
+    tanks[0] = new Tank(-256, 0, 100, new float[3]{ 0.8f, 0.0f, 0.0f }, M_PI_2, 0.05f, 0.04f);
+    tanks[1] = new Tank(256, 0, 100, new float[3] { 0.0f, 0.8f, 0.0f }, M_PI_4, 0.01f, 0.5f);
 
 
     while (!glfwWindowShouldClose(window))
@@ -80,41 +81,45 @@ int main()
         states[6] = glfwGetKey(window, GLFW_KEY_UP);
         states[7] = glfwGetKey(window, GLFW_KEY_DOWN);
         
+        // танк 1
+        // влево        
         if (states[0] && !states[1])
         {
-            tanks[0]->speedX -= acceleration;            
+            tanks[0]->Rotate(1);
         }
-
+        // вправо 
         if (!states[0] && states[1])
         {
-            tanks[0]->speedX += acceleration;
+            tanks[0]->Rotate(-1);
         }
-        
+        // влево вправо
         if (states[0] && states[1])
         {
-            tanks[0]->speedX = 0;
+            tanks[0]->engineState = 0;
         }
-
+        // обе не нажаты
         if (!states[0] && !states[1])
         {
-            tanks[0]->speedX = 0;
+            tanks[0]->engineState = 0;
         }
-
+        // вперёд
         if (states[2] && !states[3])
         {
-            tanks[0]->speedY += acceleration;
-        }
-
+            tanks[0]->engineState = 1;
+            tanks[0]->speed = 1;
+        }   
+        // вниз
         if (!states[2] && states[3])
         {
-            tanks[0]->speedY -= acceleration;
+            tanks[0]->engineState = 1;
+            tanks[0]->speed = -1;
         }
-
+        // вверх вниз
         if (states[2] && states[3])
         {
             tanks[0]->speedY = 0;
         }
-
+        // обе не нажаты
         if (!states[2] && !states[3])
         {
             tanks[0]->speedY = 0;
@@ -123,12 +128,12 @@ int main()
         // second tank
         if (states[4] && !states[5])
         {
-            tanks[1]->speedX -= acceleration;            
+            tanks[1]->angle -= tanks[1]->rotateSpeed;            
         }
 
         if (!states[4] && states[5])
         {
-            tanks[1]->speedX += acceleration;
+            tanks[1]->angle += tanks[1]->rotateSpeed; 
         }
         
         if (states[4] && states[5])
@@ -175,6 +180,7 @@ int main()
             glUniform3fv(uColor, 1, tanks[i]->color);
             glUniform2f(uPosition, tanks[i]->x, tanks[i]->y);
             glUniform1f(uSize, tanks[i]->size);
+            glUniform1f(uAngle, tanks[i]->angle);
             glBindVertexArray(VAO);
             glDrawArrays(GL_TRIANGLES, 0, 6);
         }
