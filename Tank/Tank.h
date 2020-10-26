@@ -7,8 +7,11 @@ public:
 
     // Speed Direction
     float speed = 0;
-    float speedX;
-    float speedY;
+    int moveDir = 0;
+
+    // Speed limits
+    float maxSpeedForward = 0;
+    float maxSpeedBack = 0;
 
     float power;
 
@@ -21,7 +24,7 @@ public:
 
     float *color;
 
-    Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw);
+    Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw, float maxFS, float maxBS);
     Tank();
     void Move();
     void Rotate(int dir);
