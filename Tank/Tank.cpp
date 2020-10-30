@@ -10,6 +10,7 @@ Tank::Tank(float xPos, float yPos, float size, float *color, float angle, float 
     maxSpeedBack = maxBS;
     this->color = color;
     this->angle = angle;
+    tower = new Tower(xPos, yPos, angle);
     rotateSpeed = rotSp;
     power = pw;
 }
@@ -45,9 +46,11 @@ void Tank::Move()
             speed = maxSpeedBack;
         }
     }
-    
-    x += speed * cos(angle);
-    y += speed * sin(angle);
+    float spC = speed * cos(angle);
+    float spS = speed * sin(angle);
+    x += spC;
+    y += spS;
+    tower->Move(spC, spS);
     moveDir = 0;
 }
 
@@ -55,5 +58,6 @@ void Tank::Rotate(int dir)
 {
     const float dA = dir * 0.01 * (1.5 - abs(speed) / maxSpeedForward);
     angle += dA;
+    tower->RotateWithTank(dA);
     speed *= 0.97;
 }

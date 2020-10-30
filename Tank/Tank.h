@@ -1,3 +1,7 @@
+#ifndef TANK_H
+#define TANK_H
+#include "Tower.h"
+
 
 class Tank
 {
@@ -24,8 +28,12 @@ public:
 
     float *color;
 
+    Tower *tower;
+
     Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw, float maxFS, float maxBS);
     Tank();
     void Move();
     void Rotate(int dir);
 };
+
+#endif

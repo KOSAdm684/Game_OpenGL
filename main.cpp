@@ -30,13 +30,15 @@ int main()
     // Set Viewport to fill window
     glViewport(0, 0, width, height);
     
+    // TODO Доделать башню
+
     glewExperimental = GL_TRUE;
     glewInit();
     
     Shader *shdr = new Shader("Shaders/tr.vert", "Shaders/tr.frag");
 
     int countVertices = 0;
-    GLfloat* vertices = Model::readModel("res/tank.mdl", countVertices);
+    GLfloat* vertices = Model::readModel("res/test.mdl", countVertices);
     std::cout << sizeof(vertices) << " " << countVertices << std::endl;
     GLuint uProj = glGetUniformLocation(shdr->Program, "u_projection");
     GLuint uColor = glGetUniformLocation(shdr->Program, "u_color");
@@ -136,7 +138,7 @@ int main()
             glUniform1f(uSize, tanks[i]->size);
             glUniform1f(uAngle, tanks[i]->angle);
             glBindVertexArray(VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glDrawArrays(GL_TRIANGLES, 0, 30);
         }
         glBindVertexArray(0);
 
