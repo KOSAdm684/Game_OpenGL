@@ -1,3 +1,7 @@
+#ifndef TANK_H
+#define TANK_H
+#include "Tower.h"
+
 
 class Tank
 {
@@ -7,8 +11,11 @@ public:
 
     // Speed Direction
     float speed = 0;
-    float speedX;
-    float speedY;
+    int moveDir = 0;
+
+    // Speed limits
+    float maxSpeedForward = 0;
+    float maxSpeedBack = 0;
 
     float power;
 
@@ -21,8 +28,12 @@ public:
 
     float *color;
 
-    Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw);
+    Tower *tower;
+
+    Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw, float maxFS, float maxBS);
     Tank();
     void Move();
     void Rotate(int dir);
 };
+
+#endif

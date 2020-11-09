@@ -3,6 +3,7 @@
 #include "Shader/Shader.h"
 #include <GLFW/glfw3.h>
 #include "Tank/Tank.h"
+#include "Model/Model.h"
 #include <math.h>
 
 int main()
@@ -17,7 +18,6 @@ int main()
     int height = 768; // [-384; 384]
     const float *proj = new float[2]{ (float)2/width, (float)2/height };
     bool *states = new bool[8] { 0, 0, 0, 0, 0, 0, 0, 0 };
-    const float acceleration = 0.1f;
     // Create a GLFWwindow
     GLFWwindow *window = glfwCreateWindow(width, height, "title", nullptr, nullptr);
     if (!window) {
@@ -30,21 +30,16 @@ int main()
     // Set Viewport to fill window
     glViewport(0, 0, width, height);
     
+    // TODO Доделать башню
+
     glewExperimental = GL_TRUE;
     glewInit();
     
     Shader *shdr = new Shader("Shaders/tr.vert", "Shaders/tr.frag");
 
-    GLfloat vertices[] = {
-        -0.5f, -0.5f,
-        -0.5f, 0.5f,
-        0.5f, -0.5f,
-
-        0.5f, -0.5f,
-        0.5f, 0.5f,
-        -0.5f, 0.5f
-    };
-
+    int countVertices = 0;
+    GLfloat* vertices = Model::readModel("res/test.mdl", countVertices);
+    std::cout << sizeof(vertices) << " " << countVertices << std::endl;
     GLuint uProj = glGetUniformLocation(shdr->Program, "u_projection");
     GLuint uColor = glGetUniformLocation(shdr->Program, "u_color");
     GLuint uSize = glGetUniformLocation(shdr->Program, "u_size");
@@ -57,16 +52,19 @@ int main()
     glBindVertexArray(VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(float) * countVertices, vertices, GL_DYNAMIC_DRAW);
 
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
     glEnableVertexAttribArray(0);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(2 * sizeof(GLfloat)));
+    glEnableVertexAttribArray(1);
 
     glBindVertexArray(0);
 
     Tank **tanks = new Tank*[2];
-    tanks[0] = new Tank(-256, 0, 100, new float[3]{ 0.8f, 0.0f, 0.0f }, M_PI_2, 0.05f, 0.04f);
-    tanks[1] = new Tank(256, 0, 100, new float[3] { 0.0f, 0.8f, 0.0f }, M_PI_4, 0.01f, 0.5f);
+    tanks[0] = new Tank(-256, 0, 100, new float[3] { 0.8f, 0.0f, 0.0f }, M_PI_2, 0.05f, 0.2f, 3.0f, -1.0f);
+    tanks[1] = new Tank(256, 0, 100, new float[3] { 0.0f, 0.8f, 0.0f }, M_PI_4, 0.01f, 0.5f, 3.0f, -1.0f);
 
 
     while (!glfwWindowShouldClose(window))
@@ -92,78 +90,36 @@ int main()
         {
             tanks[0]->Rotate(-1);
         }
-        // влево вправо
-        if (states[0] && states[1])
-        {
-            tanks[0]->engineState = 0;
-        }
-        // обе не нажаты
-        if (!states[0] && !states[1])
-        {
-            tanks[0]->engineState = 0;
-        }
         // вперёд
         if (states[2] && !states[3])
         {
-            tanks[0]->engineState = 1;
-            tanks[0]->speed = 1;
+            tanks[0]->moveDir = 1;
         }   
         // вниз
         if (!states[2] && states[3])
         {
-            tanks[0]->engineState = 1;
-            tanks[0]->speed = -1;
-        }
-        // вверх вниз
-        if (states[2] && states[3])
-        {
-            tanks[0]->speedY = 0;
-        }
-        // обе не нажаты
-        if (!states[2] && !states[3])
-        {
-            tanks[0]->speedY = 0;
+            tanks[0]->moveDir = -1;
         }
 
         // second tank
         if (states[4] && !states[5])
         {
-            tanks[1]->angle -= tanks[1]->rotateSpeed;            
+            tanks[1]->Rotate(1);            
         }
 
         if (!states[4] && states[5])
         {
-            tanks[1]->angle += tanks[1]->rotateSpeed; 
-        }
-        
-        if (states[4] && states[5])
-        {
-            tanks[1]->speedX = 0;
-        }
-
-        if (!states[4] && !states[5])
-        {
-            tanks[1]->speedX = 0;
+            tanks[1]->Rotate(-1); 
         }
 
         if (states[6] && !states[7])
         {
-            tanks[1]->speedY += acceleration;
+            tanks[1]->moveDir = 1;
         }
 
         if (!states[6] && states[7])
         {
-            tanks[1]->speedY -= acceleration;
-        }
-
-        if (states[6] && states[7])
-        {
-            tanks[1]->speedY = 0;
-        }
-
-        if (!states[6] && !states[7])
-        {
-            tanks[1]->speedY = 0;
+            tanks[1]->moveDir = -1;
         }
 
         tanks[0]->Move();
@@ -182,7 +138,7 @@ int main()
             glUniform1f(uSize, tanks[i]->size);
             glUniform1f(uAngle, tanks[i]->angle);
             glBindVertexArray(VAO);
-            glDrawArrays(GL_TRIANGLES, 0, 6);
+            glDrawArrays(GL_TRIANGLES, 0, 30);
         }
         glBindVertexArray(0);
 
