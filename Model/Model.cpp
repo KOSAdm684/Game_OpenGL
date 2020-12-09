@@ -5,8 +5,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-float* Model::readModel(const char* path, int &cv)
+TankModel Model::readTankModel(const char* path)
 {
+    TankModel tm;
     FILE *f = fopen(path, "r");
     if (f == NULL)
     {
@@ -14,31 +15,48 @@ float* Model::readModel(const char* path, int &cv)
     }
     int i = 0;
 
-    int n = 0;
-    int m = 0;
-
-    if (fscanf(f, "%d %d\n", &n, &m) == EOF)
+    if (fscanf(f, "%d %d %d\n", &tm.cvBody, &tm.cvTower, &tm.countParams) == EOF)
+    {
+        std::cout << "Error of reading" << std::endl;
+    }
+    if (fscanf(f, "%f %f\n", &tm.offsetBodyX, &tm.offsetBodyY) == EOF)
     {
         std::cout << "Error of reading" << std::endl;
     }
 
-    float *arr = new float[n*m];
+    tm.vertices = new float[(tm.cvBody + tm.cvTower) * tm.countParams];
 
     while(!feof(f))
     {
-        fscanf(f, "%f", &arr[i]);
+        fscanf(f, "%f", &tm.vertices[i]);
         i+=1;
     }
-    cv = i;
-    
-    for (i = 0; i < n * m; i += m)
-    {
-        float x = arr[i];
-        float y = arr[i + 1];
-        arr[i] = x * cos(-M_PI_2) - y * sin(-M_PI_2);
-        arr[i + 1] = x * sin(-M_PI_2) + y * cos(-M_PI_2);
-    }
-    
     fclose(f);
-    return arr;
+    return tm;
+}
+
+GunShellModel Model::readGunShellModel(const char* path)
+{
+    GunShellModel gsm;
+    FILE *f = fopen(path, "r");
+    if (f == NULL)
+    {
+        std::cout << "File not opened" << std::endl;
+    }
+    int i = 0;
+
+    if (fscanf(f, "%d %d\n", &gsm.cv, &gsm.countParams) == EOF)
+    {
+        std::cout << "Error of reading" << std::endl;
+    }
+
+    gsm.vertices = new float[gsm.cv * gsm.countParams];
+
+    while(!feof(f))
+    {
+        fscanf(f, "%f", &gsm.vertices[i]);
+        i+=1;
+    }
+    fclose(f);
+    return gsm;
 }

@@ -1,17 +1,17 @@
 #ifndef TOWER_H
 #define TOWER_H
+#include "../Object/Object.h"
 
-class Tower
+class Tower : public Object
 {
 public:
-    float x;
-    float y;
+    float bodyOffsetX;
+    float bodyOffsetY;
 
-    float angle;
-
-    Tower(float X, float Y, float Angle);
-    void RotateWithTank(float rot);
-    void Move(float spCos, float spSin);
+    Tower(float X, float Y, float Angle, float offX, float offY);
+    void RotateWithTank(float dA);
+    void Move();
+    void Rotate(int dir);
 };
 
 #endif

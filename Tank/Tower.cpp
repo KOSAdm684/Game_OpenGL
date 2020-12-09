@@ -1,19 +1,23 @@
 #include "Tower.h"
 
-Tower::Tower(float X, float Y, float Angle)
+Tower::Tower(float X, float Y, float Angle, float offX, float offY)
 {
     x = X;
     y = Y;
     angle = Angle;
+    bodyOffsetX = offX;
+    bodyOffsetY = offY;
 }
 
-void Tower::RotateWithTank(float rot)
+void Tower::RotateWithTank(float dA)
 {
-    angle += rot;
+    angle += dA;
 }
 
-void Tower::Move(float spCos, float spSin)
+void Tower::Rotate(int dir)
 {
-    x += spCos;
-    y += spSin;
+    const float dA = dir * 0.0125;
+    angle += dA;
 }
+
+void Tower::Move() {}
