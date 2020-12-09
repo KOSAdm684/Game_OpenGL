@@ -1,16 +1,14 @@
 #ifndef TANK_H
 #define TANK_H
 #include "Tower.h"
+#include "GunShell.h"
+#include "../Object/Object.h"
 
 
-class Tank
+class Tank : public Object
 {
 public:
-    float x;
-    float y;
-
     // Speed Direction
-    float speed = 0;
     int moveDir = 0;
 
     // Speed limits
@@ -21,7 +19,6 @@ public:
 
     bool engineState = false;
 
-    float angle;
     float rotateSpeed;
 
     float size;
@@ -30,8 +27,13 @@ public:
 
     Tower *tower;
 
-    Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw, float maxFS, float maxBS);
+    GunShell *gunShell;
+
+    unsigned rTime;
+
+    Tank(float xPos, float yPos, float size, float *color, float angle, float rotSp, float pw, float maxFS, float maxBS, float offX, float offY);
     Tank();
+    GunShell* Shoot();
     void Move();
     void Rotate(int dir);
 };
